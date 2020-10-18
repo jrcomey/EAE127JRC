@@ -204,3 +204,5 @@ b = np.array([[12],
               [10],
               [-1],
               [-5]])
+x = np.linalg.solve(A, b)
+print(x)
