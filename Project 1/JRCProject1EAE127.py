@@ -109,8 +109,6 @@ def NACAThicknessEquation(N, A, CA, num_points, *, use_other_x_points=0):
     
     # Find camber line
     zcc = 0*x_non_dim
-    p = 0.1 * A
-    m = 0.01 * N
     try:
         for i in zip(*np.where(x_non_dim <= p)):
             zcc[i] = 2*p*x_non_dim[i]
@@ -125,6 +123,7 @@ def NACAThicknessEquation(N, A, CA, num_points, *, use_other_x_points=0):
 
     except:
         zcc = 0*x_non_dim
+
 
     # Sum the two
     zup = zcc + ztc
@@ -199,6 +198,8 @@ def CalculateCmLE(Cplx, Cply, Cpux, Cpuy, *, c=1):
 def RotateC(C_n, C_a, alpha):
     C_l = C_n*np.cos(np.deg2rad(alpha)) - C_a * np.sin(np.deg2rad(alpha))
     C_d = C_n*np.sin(np.deg2rad(alpha)) + C_a * np.cos(np.deg2rad(alpha))
+    
+    return C_l, C_d
 
 def plothusly(ax, x, y, *, xtitle='', ytitle='',
               datalabel='', title='', linestyle='-',
@@ -349,10 +350,28 @@ plothusly(test,
           wake_velocity_dat["y/c"],
           datalabel='Original',
           xtitle=r'Fluid Exit velocity u$_2$',
-          ytitle=r'Non-dimensionalized y dimension $\frac{y}{c}$')
+          ytitle=r'Non-dimensionalized y dimension $\frac{y}{c}$',
+          marker='o',
+          title='Airfoil Wake Drag')
 plothus(test, u2, yc, datalabel=r'6$^{th}$ Degree Polynomial Fit')
 plt.xlim([0, 1])
-plt.ylim([-1.5, 1.5])
+plt.ylim([-1.25, 1.25])
+
+
+# Shade in boundary layer
+vline = u2*0
+plt.fill_betweenx(yc, 0, u2, color='green', alpha=0.05)
+
+
+# Make Arrows
+arrowwidth, arrowlength = 0.02, 0.02
+
+for i in range(0, len(yc), 5):
+    if abs(u2[i]) < arrowlength:
+        plt.plot([0, u2[i]], [yc[i], yc[i]], color='green')
+    else:
+        plt.arrow(0, yc[i], u2[i]-arrowlength, 0, head_width=arrowwidth,
+                  head_length=arrowlength, color='green', linewidth=2, alpha=0.3)
 
 #%%###########################
 
@@ -361,14 +380,14 @@ plt.ylim([-1.5, 1.5])
 xfoildat = pd.read_csv("Data/JRCairfoildataProject1.csv")
 print(xfoildat)
 
-# NACA 2418, alpha = 0
 
-# Viscid
+# Symmetric
 airfoilflatHIlo0 = np.loadtxt("Data/naca2418/naca2418ReHI0lower.text", skiprows=1)
 airfoilflatHIhi0 = np.loadtxt("Data/naca2418/naca2418ReHI0upper.text", skiprows=1)
 airfoilflatHIlo11 = np.loadtxt("Data/naca2418/naca2418ReHI11lower.text", skiprows=1)
 airfoilflatHIhi11 = np.loadtxt("Data/naca2418/naca2418ReHI11upper.text", skiprows=1)
 
+# Cambered
 airfoilcurveHIlo0 = np.loadtxt("Data/naca0018/naca0018ReHI0lower.text", skiprows=1)
 airfoilcurveHIhi0 = np.loadtxt("Data/naca0018/naca0018ReHI0upper.text", skiprows=1)
 airfoilcurveHIlo11 = np.loadtxt("Data/naca0018/naca0018ReHI11lower.text", skiprows=1)
@@ -554,7 +573,7 @@ LAMBDA = 10  # Capital lambda, source strength
 source_flow_phi = lambda r: LAMBDA/(2*np.pi) * np.log(r)
 source_flow_psi = lambda theta: LAMBDA/(2*np.pi) * theta
 
-data_points = np.linspace(1, 10, 1000000)
+data_points = np.linspace(1, 10, 10000000)
 
 
 laplace_verified_phi = np.gradient(data_points * np.gradient(source_flow_phi(data_points))) / data_points
