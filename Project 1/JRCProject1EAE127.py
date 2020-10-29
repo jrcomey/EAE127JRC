@@ -49,7 +49,7 @@ class Airplane115():
         -------
         C_L : Lift Coefficient
         C_D : Drag Coefficient
-        LD : TLift/Drag Ratio
+        LD : Lift/Drag Ratio
 
         """
         
@@ -157,7 +157,7 @@ def MomentumDeficit(y_non_dim, u1, u2, rho):
 def CalculateCn(Cplx, Cply, Cpux, Cpuy, *, c=1):
     left = np.trapz(Cply, Cplx)
     right = np.trapz(Cpuy, Cpux)
-    out = left - right
+    out = (left - right)
     out /= c
     return out
 
@@ -165,12 +165,20 @@ def CalculateCa(Cplx, Cply, Cpux, Cpuy, xc, ztu, ztl,  *, c=1):
     gradu = np.gradient(ztu, xc)
     gradl = np.gradient(ztl, xc)
     
-    try:
-        left = np.trapz(Cpuy*gradu, Cpux)
-        right= np.trapz
-    except:
-        pass
+    graduvec = np.zeros((len(Cpux)))
+    gradlvec = np.zeros((len(Cplx)))
     
+    for i in range(len(graduvec)):
+        graduvec[i] = np.interp(Cpux[i], xc, gradu)
+
+    for i in range(len(gradlvec)):
+        gradlvec[i] = np.interp(Cplx[i], xc, gradl)
+    left = np.trapz(Cpuy*graduvec, Cpux)
+    right = np.trapz(Cply*gradlvec, Cplx)
+
+    
+    out = (left - right)/c
+    return out
 
 def CalculateCmLE(Cplx, Cply, Cpux, Cpuy, *, c=1):
     """
@@ -189,17 +197,18 @@ def CalculateCmLE(Cplx, Cply, Cpux, Cpuy, *, c=1):
     CmLE : Moment Coefficient CmLE
 
     """
-    left = np.trapz(Cpuy, Cpux)
-    right = np.trapz(Cply, Cplx)
+    left = np.trapz(Cpuy*Cpux, Cpux)
+    right = np.trapz(Cply*Cplx, Cplx)
     CmLE = left - right
     CmLE /= c**2
     return CmLE
 
-def RotateC(C_n, C_a, alpha):
+def RotateC(C_n, C_a, C_mLE, alpha):
     C_l = C_n*np.cos(np.deg2rad(alpha)) - C_a * np.sin(np.deg2rad(alpha))
     C_d = C_n*np.sin(np.deg2rad(alpha)) + C_a * np.cos(np.deg2rad(alpha))
     
-    return C_l, C_d
+    C_m4 = C_mLE + 0.25*C_l
+    return C_l, C_d, C_m4
 
 def plothusly(ax, x, y, *, xtitle='', ytitle='',
               datalabel='', title='', linestyle='-',
@@ -508,13 +517,64 @@ plt.gca().invert_yaxis()
 #%%###########################
 
 # Problem 3.3
-
+alpha = 11
 airfoilcurveLOlo11 = np.loadtxt("Data/naca2418/naca2418ReLO11lower.text", skiprows=1)
 airfoilcurveLOhi11 = np.loadtxt("Data/naca2418/naca2418ReLO11upper.text", skiprows=1)
 
 
-# x, upper, lower, chord = NACAThicknessEquation(2, 4, 18, 0, use_other_x_points=)
+# Calculate for Inviscid
 
+# Flipping upper surface is necessary, since it is reversed.
+CmLOi = CalculateCmLE(airfoilcurveLOlo11[:, 0],
+                      airfoilcurveLOlo11[:, 1],
+                      np.flip(airfoilcurveLOhi11[:, 0]),
+                      np.flip(airfoilcurveLOhi11[:, 1]))
+
+CaLO = CalculateCa(airfoilcurveLOlo11[:, 0],
+                   airfoilcurveLOlo11[:, 1],
+                   np.flip(airfoilcurveLOhi11[:, 0]),
+                   np.flip(airfoilcurveLOhi11[:, 1]),
+                   airfoil_df["NACA 2418 X"],
+                   airfoil_df["NACA 2418 Upper"],
+                   airfoil_df["NACA 2418 Lower"])
+
+CnLO = CalculateCn(airfoilcurveLOlo11[:, 0],
+                   airfoilcurveLOlo11[:, 1],
+                   np.flip(airfoilcurveLOhi11[:, 0]),
+                   np.flip(airfoilcurveLOhi11[:, 1]))
+
+
+# Report Results
+ClLO, CdLO, CmLO = RotateC(CnLO, CaLO, CmLOi, alpha)
+string = f'For Re = 0, Cl = {ClLO}, Cd = {CdLO}, Cm = {CmLO}'
+print(string)
+
+
+
+# Calculate for viscid
+CmHI = CalculateCmLE(airfoilcurveHIlo11[:, 0],
+                     airfoilcurveHIlo11[:, 1],
+                     np.flip(airfoilcurveHIhi11[:, 0]),
+                     np.flip(airfoilcurveHIhi11[:, 1]))
+
+CaHI = CalculateCa(airfoilcurveHIlo11[:, 0],
+                   airfoilcurveHIlo11[:, 1],
+                   np.flip(airfoilcurveHIhi11[:, 0]),
+                   np.flip(airfoilcurveHIhi11[:, 1]),
+                   airfoil_df["NACA 2418 X"],
+                   airfoil_df["NACA 2418 Upper"],
+                   airfoil_df["NACA 2418 Lower"])
+
+CnHI = CalculateCn(airfoilcurveHIlo11[:, 0],
+                   airfoilcurveHIlo11[:, 1],
+                   np.flip(airfoilcurveHIhi11[:, 0]),
+                   np.flip(airfoilcurveHIhi11[:, 1]))
+
+
+# Report Results
+ClHI, CdHI, CmHI = RotateC(CnHI, CaHI, CmHI, alpha)
+string = f'For Re = 6e5, Cl = {ClHI}, Cd = {CdHI}, Cm = {CmHI}'
+print(string)
 
 #%%###########################
 
@@ -573,7 +633,7 @@ LAMBDA = 10  # Capital lambda, source strength
 source_flow_phi = lambda r: LAMBDA/(2*np.pi) * np.log(r)
 source_flow_psi = lambda theta: LAMBDA/(2*np.pi) * theta
 
-data_points = np.linspace(1, 10, 10000000)
+data_points = np.linspace(1, 10, 100000)
 
 
 laplace_verified_phi = np.gradient(data_points * np.gradient(source_flow_phi(data_points))) / data_points
