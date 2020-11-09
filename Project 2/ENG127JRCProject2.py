@@ -585,13 +585,15 @@ Nlist = np.array([5, 11, 101])
 u_inf = 0.5
 v_inf = 0
 
-N = 1000
+N = 2000
 
 x_bounds = np.linspace(-1, 1, N)
-y_bounds = np.linspace(-2, 2, N)
+y_bounds = np.linspace(-0.5, 1.5, N)
 
 X, Y = np.meshgrid(x_bounds, y_bounds)
 
+graphlist = np.empty((len(Nlist)), dtype=object)
+i = 0
 
 for NN in Nlist:
     
@@ -604,15 +606,24 @@ for NN in Nlist:
     source_x_list = np.concatenate((xpos, x_other))
     source_l_list = np.concatenate((l, -l))
 
-    stream3 = CreateStreamPlot(source_x_list, source_y_list, source_l_list, u_inf, v_inf, X, Y, N)
-    
-    # plot "wall"
-    boxx = np.array([0.5, 0.5, -0.2, -0.2, 0.5])
-    boxy = np.array([-0.25, 1.25, 1.25, -0.25, -0.25])
-    plt.plot(boxx, boxy, linewidth = 3, linestyle='--', label="Wall", )
+    graphlist[i] = CreateStreamPlot(source_x_list, source_y_list, source_l_list, u_inf, v_inf, X, Y, N)
     plt.axis('equal')
-    plt.legend(loc="upper left")
     plt.ylim([-0.5, 1.5])
+    i += 1
+
+# plot "wall"
+boxx = np.array([0.4, 0.4, -0.15, -0.15, 0.4])
+boxy = np.array([-0.2, 1.2, 1.2, -0.2, -0.2])
+graphlist[0].plot(boxx, boxy, linewidth = 3, linestyle='--', label='"Wall"')
+    
+
+boxx = np.array([0.41, 0.41, -0.18, -0.18 , 0.41])
+boxy = np.array([-0.2, 1.2, 1.2, -0.2, -0.2])
+graphlist[1].plot(boxx, boxy, linewidth = 3, linestyle='--', label='"Wall"')
+
+boxx = np.array([0.5, 0.5, -0.25, -0.25, 0.5])
+boxy = np.array([-0.2, 1.2, 1.2, -0.2, -0.2])
+graphlist[2].plot(boxx, boxy, linewidth = 3, linestyle='--', label='"Wall"')
     
 
 #%%###########################
@@ -636,6 +647,33 @@ plothusly(fourplot, FourOneDat["alpha"], FourOneDat["X_cp"],
 
 # 4.2
 
+reynolds = lambda rho, V, L, T: (rho*V*L/(T**0.5))
+Ma = lambda V, T: (V/(T**0.5))
+
+T = 199
+fig, rocketplot = plt.subplots()
+plothusly(rocketplot, rocketx, rockety, xtitle='x', ytitle='u', datalabel='', title='Problem 1b: Nozzle Flow')
+
+rho = 1.23
+V = 141
+L = 1
+
+re1 = reynolds(rho, V, L, T)
+ma1 = Ma(V, T)
+
+T = 400
+rho = 1.739
+V = 200
+L = 2
+
+re2 = reynolds(rho, V, L, T)
+ma2 = Ma(V, T)
+
+string1 = f'Re_1 = {re1:.2f}, Re_2 = {re2:.2f}'
+string2 = f'Ma_1 = {ma1:.2f}, Ma_2 = {ma2:.2f}'
+
+print(string1)
+print(string2)
 
 #%%###########################
 
