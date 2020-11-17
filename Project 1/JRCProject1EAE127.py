@@ -162,6 +162,7 @@ def CalculateCn(Cplx, Cply, Cpux, Cpuy, *, c=1):
     return out
 
 def CalculateCa(Cplx, Cply, Cpux, Cpuy, xc, ztu, ztl,  *, c=1):
+    
     gradu = np.gradient(ztu, xc)
     gradl = np.gradient(ztl, xc)
     
