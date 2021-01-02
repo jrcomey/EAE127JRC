@@ -399,7 +399,28 @@ plt.title(f"Airflow plot for {airfoilname}, alpha = {rad2deg(alpha)}")
 
 # 4.1
 
+mph2fps = lambda v: v * 1.46667
 
+W = 1669  # lbf
+b = 36  # ft
+rho = 0.00237717  # slug/ft**3
+V = mph2fps(140)  # ft/s
+
+
+Gamma = W / (rho * V * b)
+
+R = np.linspace(1, 20, 2001)
+Omega = Gamma / (2 * np.pi * R)**2
+
+fig, omegaplot = plt.subplots()
+
+plothusly(omegaplot,
+          R,
+          Omega,
+          xtitle=r"Rotor Radius $R$ (ft)",
+          ytitle=r'Rotor speed $\Omega$',
+          title="Rotorcraft Speed Requirements",
+          datalabel="Cessna 172R")
 
 #%%###########################
 
@@ -449,7 +470,7 @@ Liftdat["NACA 23012 Lift"] = const2force(prob42dat["NACA 23012 C_l"],
 Liftdat["NACA 23012 Drag"] = const2force(prob42dat["NACA 23012 C_d"],
                                         prob42dat["Reynolds"])
 
-print(Liftdat.to_markdown)
+print(Liftdat.to_markdown())
 
 #%%###########################
 
@@ -541,4 +562,18 @@ df = pd.DataFrame(np.array([cruiseD]), columns = column_names)
 
 df["Landing Drag Force (N)"] = landD
 
-print(df.to_markdown)
+print(df.to_markdown())
+
+#%%###########################
+
+x, y = NACAThicknessEquationMOD(2, 4, 12, 100)
+
+fig, geoplot = plt.subplots()
+
+plothusly(geoplot, x, y,
+          xtitle=r"$\frac{x}{c}$",
+          ytitle=r'$\frac{z}{c}$',
+          title="NACA 2412 Geometry",
+          datalabel="NACA 2412")
+plt.fill(x, y,)
+plt.axis('equal')

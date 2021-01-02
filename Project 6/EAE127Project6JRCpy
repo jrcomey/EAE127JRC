@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Dec 12 16:38:18 2020
+
+@author: jack
+"""
+
+
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import copy
+import time
+plt.style.use("default")
+
+
+params={#FONT SIZES
+    'axes.labelsize':30,#Axis Labels
+    'axes.titlesize':30,#Title
+    'font.size':28,#Textbox
+    'xtick.labelsize':22,#Axis tick labels
+    'ytick.labelsize':22,#Axis tick labels
+    'legend.fontsize':24,#Legend font size
+    'font.family':'sans-serif',
+    'font.fantasy':'xkcd',
+    'font.sans-serif':'Helvetica',
+    'font.monospace':'Courier',
+    #AXIS PROPERTIES
+    'axes.titlepad':2*6.0,#title spacing from axis
+    'axes.grid':True,#grid on plot
+    'figure.figsize':(12,12),#square plots
+    # 'savefig.bbox':'tight',#reduce whitespace in saved figures#LEGEND PROPERTIES
+    'legend.framealpha':0.5,
+    'legend.fancybox':True,
+    'legend.frameon':True,
+    'legend.numpoints':1,
+    'legend.scatterpoints':1,
+    'legend.borderpad':0.1,
+    'legend.borderaxespad':0.1,
+    'legend.handletextpad':0.2,
+    'legend.handlelength':1.0,
+    'legend.labelspacing':0,}
+mpl.rcParams.update(params)
+
+#%%###########################
+
+# Problem 1.1
+
